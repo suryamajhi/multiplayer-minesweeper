@@ -33,6 +33,12 @@ pub fn handle_connection(
                 stream.write_all(output.as_bytes()).unwrap();
                 break;
             }
+            s if s.eq("WIN") => {
+                stream.write_all(output.as_bytes()).unwrap();
+
+                // broadcast to all clients
+                break;
+            }
             _ => {
                 stream.write_all(output.as_bytes()).unwrap();
                 stream.write_all("\n".as_bytes()).unwrap();
@@ -67,10 +73,16 @@ fn handle_request(line: &str, board: &mut Arc<Mutex<Board>>) -> String {
                     let x = tokens.next().unwrap().parse::<i32>().unwrap();
                     let y = tokens.next().unwrap().parse::<i32>().unwrap();
                     match command_token {
-                        "dig" => board.lock().unwrap().dig(y, x),
+                        "dig" => {
+                            let result = board.lock().unwrap().dig(y, x);
+                            if board.lock().unwrap().is_complete() {
+                                return "WIN".into();
+                            }
+                            return result;
+                        }
                         "flag" => board.lock().unwrap().flag(y, x),
                         "deflag" => board.lock().unwrap().deflag(y, x),
-                        &_ => "".into(),
+                        &_ => help,
                     }
                 }
             }
