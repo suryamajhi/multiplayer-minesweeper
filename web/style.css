@@ -1,0 +1,63 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    height: 100vh;
+    background-color: #333;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+.board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.minesweeper-container {
+    text-align: center;
+}
+
+.controls {
+    margin: 1em 0;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-template-rows: repeat(10, 40px);
+    gap: 2px;
+    margin: 0 auto;
+    width: max-content;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    background-color: #666;
+    border: 1px solid #444;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: #333;
+}
+
+.cell.revealed {
+    background-color: #ddd;
+    color: #333;
+}
+
+.cell.mine {
+    background-color: red;
+    color: black;
+}
+
+.cell.flag {
+    background-color: skyblue;
+    color: black;
+}

@@ -1,7 +1,7 @@
 use std::collections::{HashSet, VecDeque};
-use std::fmt::{Display, Formatter};
 
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 use crate::board::CellType::{Flagged, NoNeighborBombs, Untouched};
 
@@ -21,6 +21,7 @@ impl CellType {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Board {
     player_count: usize,
     size_x: usize,
@@ -32,7 +33,7 @@ pub struct Board {
 
 impl Board {
     pub fn new(size_x: usize, size_y: usize) -> Self {
-        let bomb_probability = 0.2f32;
+        let bomb_probability = 0.1f32;
         let mut board = vec![vec!['#'; size_y]; size_x];
         let mut bomb = vec![vec![false; size_y]; size_x];
         let mut rng = rand::thread_rng();
@@ -65,6 +66,25 @@ impl Board {
         }
     }
 
+    pub fn reset(&mut self) {
+        let bomb_probability = 0.1f32;
+        let mut board = vec![vec!['#'; self.size_y]; self.size_x];
+        let mut bomb = vec![vec![false; self.size_y]; self.size_x];
+        let mut rng = rand::thread_rng();
+
+        for i in 0..self.size_x {
+            for j in 0..self.size_y {
+                board[i][j] = CellType::Untouched.value();
+                if rng.gen_range(0.0..1.0) <= bomb_probability {
+                    bomb[i][j] = true;
+                }
+            }
+        }
+
+        self.board = board;
+        self.bomb = bomb;
+    }
+
     /// Assert the correctness of the board and it's representation
     fn check_rep(&self) {
         assert_eq!(self.board.len(), self.size_x);
@@ -78,7 +98,7 @@ impl Board {
                     self.board[i][j] == Flagged.value()
                         || self.board[i][j] == Untouched.value()
                         || (self.board[i][j] >= '1' && self.board[i][j] <= '8'
-                            || self.board[i][j] == NoNeighborBombs.value())
+                        || self.board[i][j] == NoNeighborBombs.value())
                 );
                 if self.board[i][j] != Flagged.value() && self.board[i][j] != Untouched.value() {
                     let surrounding_bombs = self.get_adjacent_bombs(i, j);
@@ -142,7 +162,7 @@ impl Board {
         {
             self.board[x as usize][y as usize] = Flagged.value();
         }
-        format!("{}", self)
+        serde_json::to_string(&self).unwrap()
     }
 
     /// DeFlag the coordinate of the board
@@ -163,7 +183,7 @@ impl Board {
         if self.is_valid_coordinate(x, y) && self.board[x as usize][y as usize] == Flagged.value() {
             self.board[x as usize][y as usize] = Untouched.value();
         }
-        format!("{}", self)
+        serde_json::to_string(&self).unwrap()
     }
 
     /// Dig the box
@@ -187,7 +207,7 @@ impl Board {
             || y >= self.board[0].len() as i32
             || self.board[x as usize][y as usize] != Untouched.value()
         {
-            return format!("{}", self);
+            return serde_json::to_string(&self).unwrap();
         } else if self.bomb[x as usize][y as usize] {
             let x = x as usize;
             let y = y as usize;
@@ -205,8 +225,7 @@ impl Board {
             return "BOOM".into();
         }
         self.dig_recursively(x, y);
-        self.check_rep();
-        format!("{}", self)
+        serde_json::to_string(&self).unwrap()
     }
 
     fn dig_recursively(&mut self, x: i32, y: i32) {
@@ -264,23 +283,15 @@ impl Board {
     }
 
     pub fn is_complete(&self) -> bool {
-        false
-    }
-}
-
-impl Display for Board {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut result = String::new();
-        for i in 0..self.board.len() {
-            for j in 0..self.board.len() {
-                result.push(self.board[i][j]);
-                if j != self.board[i].len() - 1 {
-                    result.push(' ');
+        for i in 0..self.size_x {
+            for j in 0..self.size_y {
+                if (self.board[i][j] == Untouched.value() || self.board[i][j] == Flagged.value()) && self.bomb[i][j] != true {
+                    return false;
                 }
             }
-            result.push('\n');
         }
-        result.pop();
-        write!(f, "{}", result)
+        true
     }
+
+
 }

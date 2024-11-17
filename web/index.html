@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+
+    <title>Multiplayer MineSweeper</title>
+    <link rel="stylesheet" href="/css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js" defer></script>
+</head>
+<body>
+<h1 class="text-3xl text-center my-8">Multiplayer MineSweeper</h1>
+
+    <div class="flex flex-col items-center p-4 bg-gray-100 rounded-md shadow-lg w-full max-w-md mx-auto space-y-4">
+        <input
+                id="username"
+                type="text"
+                placeholder="Username"
+                class="w-full px-4 py-2 text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
+        <button
+                id="join-chat"
+                type="button"
+                class="w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-200 disabled:bg-gray-500"
+        >
+            Join Game
+        </button>
+    </div>
+
+<hr class="my-4">
+<div id="board-container">
+    <div id="welcome-message"></div>
+    <div id="game-board" class="game-board"></div>
+</div>
+<script>
+    const username = document.querySelector("#username");
+    const join_btn = document.querySelector("#join-chat");
+
+
+    join_btn.addEventListener("click", function (e) {
+        this.disabled = true;
+        username.disabled = true;
+        const websocket = new WebSocket("ws://localhost:3000/websocket");
+
+        websocket.onopen = function () {
+            console.log("connection opened");
+            websocket.send(username.value);
+        }
+
+        const btn = this;
+
+        websocket.onclose = function () {
+            console.log("connection closed");
+            btn.disabled = false;
+            username.disabled = false;
+        }
+
+        websocket.onmessage = function (e) {
+            let response = JSON.parse(e.data);
+            if (response.message === "WIN") {
+                websocket.close();
+            }
+            initBoard(e);
+        }
+    });
+</script>
+</body>
+</html>
