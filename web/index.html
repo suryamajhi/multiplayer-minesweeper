@@ -49,7 +49,7 @@
         const host = window.location.host; // Gets the current hostname and port
         const port = window.location.port; // Gets the current hostname and port
 
-        const websocket = new WebSocket(`${protocol}://${host}:${port}/websocket`);
+        const websocket = new WebSocket(`${protocol}://${host}/websocket`);
 
         websocket.onopen = function () {
             console.log("connection opened");
