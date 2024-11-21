@@ -7,7 +7,7 @@
 
     <title>Multiplayer MineSweeper</title>
     <link rel="stylesheet" href="/css"/>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css-tailwind"/>
     <script src="/js" defer></script>
 </head>
 <body>
@@ -42,7 +42,14 @@
     join_btn.addEventListener("click", function (e) {
         this.disabled = true;
         username.disabled = true;
-        const websocket = new WebSocket("ws://localhost:3000/websocket");
+        // Automatically determine WebSocket protocol based on the current page protocol
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+
+        // Dynamically build the WebSocket URL
+        const host = window.location.host; // Gets the current hostname and port
+        const port = window.location.port; // Gets the current hostname and port
+
+        const websocket = new WebSocket(`${protocol}://${host}/websocket`);
 
         websocket.onopen = function () {
             console.log("connection opened");
